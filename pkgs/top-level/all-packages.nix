@@ -33711,6 +33711,8 @@ with pkgs;
 
   udevil = callPackage ../applications/misc/udevil { };
 
+  unstoppableswap-gui = callPackage ../applications/misc/unstoppableswap-gui { };
+
   udiskie = callPackage ../applications/misc/udiskie { };
 
   sacc = callPackage ../applications/networking/gopher/sacc { };
