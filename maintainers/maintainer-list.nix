@@ -10257,7 +10257,7 @@
     github = "ivandimitrov8080";
     githubId = 80976541;
     name = "Ivan Dimitrov";
-    keys = [ { fingerprint = "C565 2E79 2A7A 9110 DFA7  F77D 0BDA D4B2 11C4 9294"; } ];
+    keys = [ { fingerprint = "D087 9018 5658 8FCC 84E4  7B01 5332 DF04 4E39 6B13"; } ];
   };
   ivankovnatsky = {
     github = "ivankovnatsky";
