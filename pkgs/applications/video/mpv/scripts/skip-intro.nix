@@ -2,12 +2,11 @@
   lib,
   fetchFromGitHub,
   buildLua,
-  mpv-unwrapped,
 }:
 
 buildLua {
   pname = "skip-intro";
-  name = "skip-intro";
+  version = "1.0.0";
 
   src = fetchFromGitHub {
     owner = "rui-ddc";
