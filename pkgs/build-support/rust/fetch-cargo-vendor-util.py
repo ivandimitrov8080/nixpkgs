@@ -45,6 +45,7 @@ def create_http_session() -> requests.Session:
 
 
 def download_file_with_checksum(session: requests.Session, url: str, destination_path: Path) -> str:
+    raise Exception("THIS IS SHIT")
     sha256_hash = hashlib.sha256()
     with session.get(url, stream=True, verify=False) as response:
         if not response.ok:
