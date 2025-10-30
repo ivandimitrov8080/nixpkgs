@@ -516,8 +516,7 @@ in
   ergochat = runTest ./ergochat.nix;
   esphome = runTest ./esphome.nix;
   etc = pkgs.callPackage ../modules/system/etc/test.nix { inherit evalMinimalConfig; };
-  etcd = runTestOn [ "aarch64-linux" "x86_64-linux" ] ./etcd/etcd.nix;
-  etcd-cluster = runTestOn [ "aarch64-linux" "x86_64-linux" ] ./etcd/etcd-cluster.nix;
+  etcd = import ./etcd/default.nix { inherit pkgs runTest; };
   etebase-server = runTest ./etebase-server.nix;
   etesync-dav = runTest ./etesync-dav.nix;
   evcc = runTest ./evcc.nix;
@@ -733,6 +732,7 @@ in
   immich = runTest ./web-apps/immich.nix;
   immich-public-proxy = runTest ./web-apps/immich-public-proxy.nix;
   immich-vectorchord-migration = runTest ./web-apps/immich-vectorchord-migration.nix;
+  immich-vectorchord-reindex = runTest ./web-apps/immich-vectorchord-reindex.nix;
   incron = runTest ./incron.nix;
   incus = pkgs.recurseIntoAttrs (
     handleTest ./incus {
@@ -1609,6 +1609,7 @@ in
   vsftpd = runTest ./vsftpd.nix;
   waagent = runTest ./waagent.nix;
   wakapi = runTest ./wakapi.nix;
+  warpgate = runTest ./warpgate.nix;
   warzone2100 = runTest ./warzone2100.nix;
   wasabibackend = runTest ./wasabibackend.nix;
   wastebin = runTest ./wastebin.nix;

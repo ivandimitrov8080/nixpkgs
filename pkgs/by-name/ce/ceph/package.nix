@@ -52,6 +52,7 @@
   cunit,
   e2fsprogs,
   doxygen,
+  getopt,
   gperf,
   graphviz,
   gnugrep,
@@ -106,6 +107,7 @@
 
   # Linux Only Dependencies
   linuxHeaders,
+  systemd,
   util-linux,
   libuuid,
   udev,
@@ -116,6 +118,7 @@
   libxfs ? null,
   liburing ? null,
   zfs ? null,
+  withSystemd ? lib.meta.availableOn stdenv.hostPlatform systemd,
 }:
 
 # We must have one crypto library
@@ -401,6 +404,20 @@ stdenv.mkDerivation {
       url = "https://gitlab.alpinelinux.org/ashpool/aports/-/raw/d22b70eafe33c3daabe4eea6913c5be87d9463ad/community/ceph19/cpp_redis.patch";
       hash = "sha256-wxPIsYt25CjXhJ6kmr/MXwFD58Sl4y4W+r9jAMND+uw=";
     })
+
+    # See:
+    # * <https://github.com/ceph/ceph/pull/55560>
+    # * <https://github.com/ceph/ceph/pull/60575>
+    (fetchpatch2 {
+      name = "ceph-systemd-sans-cluster-name.patch";
+      url = "https://github.com/ceph/ceph/commit/5659920c7c128cb8d9552580dbe23dd167a56c31.patch?full_index=1";
+      hash = "sha256-Uch8ZghyTowUvSq0p/RxiVpdG1Yqlww9inpVksO6zyk=";
+    })
+    (fetchpatch2 {
+      name = "ceph-systemd-prefix.patch";
+      url = "https://github.com/ceph/ceph/commit/9b38df488d7101b02afa834ea518fd52076d582a.patch?full_index=1";
+      hash = "sha256-VcbJhCGTUdNISBd6P96Mm5M3fFVmZ8r7pMl+srQmnIQ=";
+    })
   ];
 
   nativeBuildInputs = [
@@ -518,6 +535,13 @@ stdenv.mkDerivation {
     substituteInPlace src/client/fuse_ll.cc \
       --replace-fail "mount -i -o remount" "${util-linux}/bin/mount -i -o remount"
 
+    substituteInPlace systemd/*.service.in \
+      --replace-quiet "/bin/kill" "${util-linux}/bin/kill"
+
+    substituteInPlace src/{ceph-osd-prestart.sh,ceph-post-file.in,init-ceph.in} \
+       --replace-fail "GETOPT=/usr/local/bin/getopt" "GETOPT=${getopt}/bin/getopt" \
+       --replace-fail "GETOPT=getopt" "GETOPT=${getopt}/bin/getopt"
+
     # The install target needs to be in PYTHONPATH for "*.pth support" check to succeed
     export PYTHONPATH=$PYTHONPATH:$lib/${sitePackages}:$out/${sitePackages}
     patchShebangs src/
@@ -527,7 +551,8 @@ stdenv.mkDerivation {
     "-DCMAKE_INSTALL_DATADIR=${placeholder "lib"}/lib"
 
     "-DWITH_CEPHFS_SHELL:BOOL=ON"
-    "-DWITH_SYSTEMD:BOOL=OFF"
+    "-DWITH_SYSTEMD:BOOL=${if withSystemd then "ON" else "OFF"}"
+    "-DSYSTEMD_SYSTEM_UNIT_DIR=${placeholder "out"}/lib/systemd/system"
     # `WITH_JAEGER` requires `thrift` as a depenedncy (fine), but the build fails with:
     #     CMake Error at src/opentelemetry-cpp-stamp/opentelemetry-cpp-build-Release.cmake:49 (message):
     #     Command failed: 2
@@ -583,6 +608,10 @@ stdenv.mkDerivation {
     # Test that ceph-volume exists since the build system has a tendency to
     # silently drop it with misconfigurations.
     test -f $out/bin/ceph-volume
+
+    # Assert that getopt patch from preConfigure covered all instances
+    ! grep -F -r 'GETOPT=getopt' $out
+    ! grep -F -r 'GETOPT=/usr/local/bin/getopt' $out
 
     mkdir -p $client/{bin,etc,${sitePackages},share/bash-completion/completions}
     cp -r $out/bin/{ceph,.ceph-wrapped,rados,rbd,rbdmap} $client/bin

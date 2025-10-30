@@ -1834,7 +1834,21 @@ self: super: with self; {
 
   beetcamp = callPackage ../development/python-modules/beetcamp { };
 
-  beets = toPythonModule (pkgs.beets.override { python3Packages = self; });
+  beets = callPackage ../development/python-modules/beets {
+    inherit (pkgs) chromaprint;
+  };
+
+  beets-alternatives = callPackage ../development/python-modules/beets-alternatives { };
+
+  beets-audible = callPackage ../development/python-modules/beets-audible { };
+
+  beets-copyartifacts = callPackage ../development/python-modules/beets-copyartifacts { };
+
+  beets-filetote = callPackage ../development/python-modules/beets-filetote { };
+
+  beets-minimal = beets.override {
+    disableAllPlugins = true;
+  };
 
   beewi-smartclim = callPackage ../development/python-modules/beewi-smartclim { };
 
@@ -3190,13 +3204,19 @@ self: super: with self; {
   cucumber-tag-expressions = callPackage ../development/python-modules/cucumber-tag-expressions { };
 
   cupy = callPackage ../development/python-modules/cupy {
-    cudaPackages = pkgs.cudaPackages.overrideScope (
-      cu-fi: _: {
-        # CuDNN 9 is not supported:
-        # https://github.com/cupy/cupy/issues/8215
-        cudnn = cu-fi.cudnn_8_9;
-      }
-    );
+    cudaPackages =
+      # CuDNN 9 is not supported:
+      # https://github.com/cupy/cupy/issues/8215
+      # NOTE: cupy 14 will drop support for cuDNN entirely.
+      # https://github.com/cupy/cupy/pull/9326
+      let
+        version = if pkgs.cudaPackages.backendStdenv.hasJetsonCudaCapability then "8.9.5" else "8.9.7";
+      in
+      pkgs.cudaPackages.override (prevArgs: {
+        manifests = prevArgs.manifests // {
+          cudnn = pkgs._cuda.manifests.cudnn.${version};
+        };
+      });
   };
 
   curated-tokenizers = callPackage ../development/python-modules/curated-tokenizers { };
@@ -3811,6 +3831,8 @@ self: super: with self; {
   distributed = callPackage ../development/python-modules/distributed { };
 
   distro = callPackage ../development/python-modules/distro { };
+
+  distro-info = callPackage ../development/python-modules/distro-info { };
 
   distutils =
     if pythonOlder "3.12" then null else callPackage ../development/python-modules/distutils { };
@@ -12276,10 +12298,6 @@ self: super: with self; {
 
   protonup-ng = callPackage ../development/python-modules/protonup-ng { };
 
-  protonvpn-nm-lib = callPackage ../development/python-modules/protonvpn-nm-lib {
-    pkgs-systemd = pkgs.systemd;
-  };
-
   prov = callPackage ../development/python-modules/prov { };
 
   prox-tv = callPackage ../development/python-modules/prox-tv { };
@@ -12828,6 +12846,8 @@ self: super: with self; {
 
   pycycling = callPackage ../development/python-modules/pycycling { };
 
+  pycync = callPackage ../development/python-modules/pycync { };
+
   pycyphal = callPackage ../development/python-modules/pycyphal { };
 
   pydaikin = callPackage ../development/python-modules/pydaikin { };
@@ -12921,6 +12941,8 @@ self: super: with self; {
   pydrive2 = callPackage ../development/python-modules/pydrive2 { };
 
   pydroid-ipcam = callPackage ../development/python-modules/pydroid-ipcam { };
+
+  pydroplet = callPackage ../development/python-modules/pydroplet { };
 
   pydruid = callPackage ../development/python-modules/pydruid { };
 
@@ -19799,6 +19821,8 @@ self: super: with self; {
 
   vharfbuzz = callPackage ../development/python-modules/vharfbuzz { };
 
+  victron-vrm = callPackage ../development/python-modules/victron-vrm { };
+
   videocr = callPackage ../development/python-modules/videocr { };
 
   vidstab = callPackage ../development/python-modules/vidstab { };
@@ -20455,6 +20479,8 @@ self: super: with self; {
   yaswfp = callPackage ../development/python-modules/yaswfp { };
 
   yattag = callPackage ../development/python-modules/yattag { };
+
+  yaxmldiff = callPackage ../development/python-modules/yaxmldiff { };
 
   ydata-profiling = callPackage ../development/python-modules/ydata-profiling { };
 
